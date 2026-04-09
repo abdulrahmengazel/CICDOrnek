@@ -1,0 +1,45 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: yemek-postgres
+    environment:
+      POSTGRES_DB: yemek_siparis
+      POSTGRES_USER: yemek_user
+      POSTGRES_PASSWORD: yemek_pass
+    ports:
+      - "5544:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yemek_user -d yemek_siparis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: yemek-backend
+    environment:
+      SERVER_PORT: 4343
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/yemek_siparis
+      SPRING_DATASOURCE_USERNAME: yemek_user
+      SPRING_DATASOURCE_PASSWORD: yemek_pass
+    ports:
+      - "4343:4343"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: yemek-frontend
+    ports:
+      - "4242:4242"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
