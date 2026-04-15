@@ -1,44 +1,54 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: yemek-postgres
     environment:
-      POSTGRES_DB: yemek_siparis
-      POSTGRES_USER: yemek_user
-      POSTGRES_PASSWORD: yemek_pass
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5544:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U yemek_user -d yemek_siparis"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   backend:
     build:
       context: ./backend
-    container_name: yemek-backend
     environment:
       SERVER_PORT: 4343
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/yemek_siparis
-      SPRING_DATASOURCE_USERNAME: yemek_user
-      SPRING_DATASOURCE_PASSWORD: yemek_pass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "4343:4343"
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - app-network
 
   frontend:
     build:
       context: ./frontend
-    container_name: yemek-frontend
     ports:
       - "4242:4242"
+    restart: unless-stopped
     depends_on:
       - backend
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
