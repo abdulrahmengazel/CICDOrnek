@@ -225,7 +225,7 @@ function App() {
         <section className="login-panel">
           <div className="brand-block">
             <span className="eyebrow">Lezzet Sepeti</span>
-            <h1>Şehrin favori lezzetlerini tek ekranda yönetin.</h1>
+            <h1>kent favori lezzetlerini tek ekranda yönetin.</h1>
             <p>
               Spring Boot API ve React paneli ile hızlı sipariş akışı, canlı sepet
               ve teslimat görünümü.
